@@ -1071,38 +1071,38 @@ function drawSolarSystemGuides(context, time) {
 
 function drawEclipticBand(context, layout) {
   const earth = layout.nodes.get("earth");
+  const jupiter = layout.nodes.get("jupiter");
   const saturn = layout.nodes.get("saturn");
-  const neptune = layout.nodes.get("neptune");
 
-  if (!earth || !saturn || !neptune) {
+  if (!earth || !jupiter || !saturn) {
     return;
   }
 
   const gradient = context.createLinearGradient(
     layout.sun.x,
     layout.sun.y,
-    starState.width,
-    layout.sun.y - starState.height * 0.08,
+    saturn.x + 40,
+    saturn.y,
   );
 
-  gradient.addColorStop(0, "rgba(255, 176, 70, 0.16)");
-  gradient.addColorStop(0.24, "rgba(114, 230, 255, 0.11)");
-  gradient.addColorStop(0.68, "rgba(74, 143, 255, 0.08)");
+  gradient.addColorStop(0, "rgba(255, 176, 70, 0.11)");
+  gradient.addColorStop(0.28, "rgba(114, 230, 255, 0.07)");
+  gradient.addColorStop(0.72, "rgba(74, 143, 255, 0.04)");
   gradient.addColorStop(1, "rgba(12, 33, 74, 0)");
 
   context.save();
   context.strokeStyle = gradient;
   context.lineCap = "round";
-  context.lineWidth = Math.min(124, starState.height * 0.18);
+  context.lineWidth = Math.min(88, starState.height * 0.125);
   context.beginPath();
   context.moveTo(layout.sun.x + 18, layout.sun.y - 8);
   context.bezierCurveTo(
     earth.x - 50,
-    earth.y - 105,
-    saturn.x - 150,
-    saturn.y + 80,
-    neptune.x + 10,
-    neptune.y - 6,
+    earth.y - 88,
+    jupiter.x - 80,
+    jupiter.y + 62,
+    saturn.x - 22,
+    saturn.y - 4,
   );
   context.stroke();
   context.restore();
