@@ -4,8 +4,8 @@ const DEFAULT_API_KEY = "DEMO_KEY";
 const API_STORAGE_KEY = "universe-atlas:nasa-api-key";
 
 const SOLAR_SYSTEM_REFERENCE = {
-  x: 0.08,
-  y: 0.56,
+  x: 0.5,
+  y: 0.5,
   orbitTilt: 0.33,
 };
 
@@ -368,10 +368,27 @@ function syncMapLayout(time = 0) {
 }
 
 function computeSolarLayout(width, height, time = 0) {
+  const mobile = width <= 720;
   const sun = {
     x: width * SOLAR_SYSTEM_REFERENCE.x,
     y: height * SOLAR_SYSTEM_REFERENCE.y,
   };
+  const outerOrbitReference = nodeDefinitions.reduce((maxOrbit, node) => {
+    if (node.parentId || node.realm === "deep") {
+      return maxOrbit;
+    }
+
+    return Math.max(maxOrbit, node.orbit || 0);
+  }, 1);
+  const horizontalPadding = mobile ? 58 : 120;
+  const topPadding = mobile ? 96 : 88;
+  const bottomPadding = mobile ? 210 : 176;
+  const outerOrbitX = Math.min(
+    sun.x - horizontalPadding,
+    width - sun.x - horizontalPadding,
+    (sun.y - topPadding) / SOLAR_SYSTEM_REFERENCE.orbitTilt,
+    (height - sun.y - bottomPadding) / SOLAR_SYSTEM_REFERENCE.orbitTilt,
+  );
 
   const nodes = new Map();
 
@@ -395,7 +412,7 @@ function computeSolarLayout(width, height, time = 0) {
         return;
       }
 
-      const orbitX = Math.max(18, width * node.orbit);
+      const orbitX = Math.max(18, outerOrbitX * (node.orbit / outerOrbitReference));
       const orbitY = orbitX * 0.62;
       const angle =
         degreesToRadians(node.angle) + time * (node.orbitSpeed || 0);
@@ -412,7 +429,7 @@ function computeSolarLayout(width, height, time = 0) {
       return;
     }
 
-    const orbitX = width * node.orbit;
+    const orbitX = outerOrbitX * (node.orbit / outerOrbitReference);
     const orbitY = orbitX * SOLAR_SYSTEM_REFERENCE.orbitTilt;
     const angle =
       degreesToRadians(node.angle) + time * (node.orbitSpeed || 0);
@@ -442,7 +459,7 @@ function computeLabelLayout(layout, width, height) {
     y: node.y,
     radius: Math.max(node.size * 0.7, 10),
   }));
-  const sunRadius = Math.min(76, Math.max(52, width * 0.055));
+  const sunRadius = Math.min(96, Math.max(68, width * 0.07));
 
   nodeDefinitions.forEach((nodeDefinition) => {
     const node = layout.nodes.get(nodeDefinition.id);
@@ -578,8 +595,8 @@ function measureLabelScore({
     }
   });
 
-  if (circleIntersectsRect(sun, rect, 12)) {
-    score += 4500;
+  if (circleIntersectsRect(sun, rect, 32)) {
+    score += 6500;
   }
 
   return score;

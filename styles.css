@@ -368,7 +368,7 @@ h3 {
   z-index: 2;
   pointer-events: none;
   background:
-    radial-gradient(circle at 8% 56%, rgba(255, 186, 95, 0.24), transparent 12%),
+    radial-gradient(circle at 50% 50%, rgba(255, 186, 95, 0.22), transparent 14%),
     linear-gradient(110deg, rgba(255, 184, 77, 0.06), rgba(99, 177, 255, 0.04) 40%, transparent 82%),
     radial-gradient(circle at 83% 40%, rgba(86, 160, 255, 0.07), transparent 18%);
 }
@@ -376,8 +376,8 @@ h3 {
 .solar-reference {
   z-index: 3;
   pointer-events: none;
-  --sun-x: 8%;
-  --sun-y: 56%;
+  --sun-x: 50%;
+  --sun-y: 50%;
 }
 
 .sun-anchor {
