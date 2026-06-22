@@ -9,6 +9,12 @@ const SOLAR_SYSTEM_REFERENCE = {
   orbitTilt: 0.33,
 };
 
+const SOLAR_DISPLAY_ARC = {
+  start: 186,
+  end: -38,
+  rotationSpeed: 0.0000032,
+};
+
 const MAP_LABEL_CONFIG = {
   desktop: {
     bottomSafeArea: 130,
@@ -369,17 +375,11 @@ function syncMapLayout(time = 0) {
 
 function computeSolarLayout(width, height, time = 0) {
   const mobile = width <= 720;
+  const primaryNodes = nodeDefinitions.filter((node) => !node.parentId && node.realm !== "deep");
   const sun = {
     x: width * SOLAR_SYSTEM_REFERENCE.x,
     y: height * SOLAR_SYSTEM_REFERENCE.y,
   };
-  const outerOrbitReference = nodeDefinitions.reduce((maxOrbit, node) => {
-    if (node.parentId || node.realm === "deep") {
-      return maxOrbit;
-    }
-
-    return Math.max(maxOrbit, node.orbit || 0);
-  }, 1);
   const horizontalPadding = mobile ? 58 : 120;
   const topPadding = mobile ? 96 : 88;
   const bottomPadding = mobile ? 210 : 176;
@@ -389,6 +389,9 @@ function computeSolarLayout(width, height, time = 0) {
     (sun.y - topPadding) / SOLAR_SYSTEM_REFERENCE.orbitTilt,
     (height - sun.y - bottomPadding) / SOLAR_SYSTEM_REFERENCE.orbitTilt,
   );
+  const innerOrbitX = Math.max(mobile ? 58 : 92, outerOrbitX * (mobile ? 0.29 : 0.26));
+  const orbitSpan = Math.max(1, outerOrbitX - innerOrbitX);
+  const arcRotation = time * SOLAR_DISPLAY_ARC.rotationSpeed;
 
   const nodes = new Map();
 
@@ -412,10 +415,9 @@ function computeSolarLayout(width, height, time = 0) {
         return;
       }
 
-      const orbitX = Math.max(18, outerOrbitX * (node.orbit / outerOrbitReference));
+      const orbitX = Math.max(24, Math.min(36, innerOrbitX * 0.34));
       const orbitY = orbitX * 0.62;
-      const angle =
-        degreesToRadians(node.angle) + time * (node.orbitSpeed || 0);
+      const angle = degreesToRadians(node.angle) + time * (node.orbitSpeed || 0);
 
       nodes.set(node.id, {
         ...node,
@@ -429,10 +431,13 @@ function computeSolarLayout(width, height, time = 0) {
       return;
     }
 
-    const orbitX = outerOrbitX * (node.orbit / outerOrbitReference);
+    const nodeIndex = primaryNodes.findIndex((entry) => entry.id === node.id);
+    const nodeRatio =
+      primaryNodes.length <= 1 ? 0.5 : nodeIndex / (primaryNodes.length - 1);
+    const orbitX = innerOrbitX + orbitSpan * nodeRatio;
     const orbitY = orbitX * SOLAR_SYSTEM_REFERENCE.orbitTilt;
-    const angle =
-      degreesToRadians(node.angle) + time * (node.orbitSpeed || 0);
+    const displayAngle = lerp(SOLAR_DISPLAY_ARC.start, SOLAR_DISPLAY_ARC.end, nodeRatio);
+    const angle = degreesToRadians(displayAngle) + arcRotation;
 
     nodes.set(node.id, {
       ...node,
@@ -626,6 +631,10 @@ function circleIntersectsRect(circle, rect, padding = 0) {
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
+}
+
+function lerp(start, end, ratio) {
+  return start + (end - start) * ratio;
 }
 
 function initializeApiKeyForm() {
